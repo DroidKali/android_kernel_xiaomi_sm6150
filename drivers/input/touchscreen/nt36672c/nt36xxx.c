@@ -34,7 +34,7 @@
 
 #if defined(CONFIG_FB)
 #ifdef CONFIG_DRM_MSM
-#include <drm/drm_notifier.h>
+#include "drm/drm_notifier.h"
 #endif
 #include <linux/notifier.h>
 #include <linux/fb.h>
