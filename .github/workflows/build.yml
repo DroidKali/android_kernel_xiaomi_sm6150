@@ -28,9 +28,8 @@ jobs:
         export KBUILD_BUILD_HOST=kali
         export LOCALVERSION=-NetHunter
         export PATH="$HOME/proton-clang/bin:$PATH"
-        git config --global user.name "DroidKali"
-        git config --global user.email "DroidKali@users.noreply.github.com"
-        curl https://github.com/vantoman/kernel_xiaomi_sm6150/commit/0531fef56ddf7e28cbbd7dc6cb03751e9fa4f034.patch | git am
+        wget https://github.com/vantoman/kernel_xiaomi_sm6150/commit/0531fef56ddf7e28cbbd7dc6cb03751e9fa4f034.patch -O nt36xxx.patch
+        patch -p1 < nt36xxx.patch
         mkdir out
         args="-j$(nproc --all) ARCH=arm64 SUBARCH=arm64 O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip "
         make ${args} mrproper
