@@ -1,0 +1,48 @@
+name: Build Kali Linux NetrHunter kernel
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Download build toolchains
+      run: |
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang.git $HOME/proton-clang
+
+    - name: Setup build environment
+      run: |
+        apt update
+        apt install -y curl wget vim git ccache automake flex lzop bison gperf build-essential zip zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler kmod python3 python3-pip
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export KBUILD_BUILD_USER=root
+        export KBUILD_BUILD_HOST=kali
+        export LOCALVERSION=-NetHunter
+        export PATH="$HOME/proton-clang/bin:$PATH"
+        mkdir out
+        args="-j$(nproc --all) ARCH=arm64 SUBARCH=arm64 O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip "
+
+    - name: Generator defconfig
+      run: |
+        make ${args} mrproper
+        make ${args} phoenix_defconfig
+
+    - name: Start build kernel image
+      run: |
+        make ${args} 2>&1 | tee kernel.log
+
+    - name: Start build kernel modules
+      run: |
+        make ${args} INSATLL_MOD_PATH="." INSTALL_MOD_STRIP=1 modules_install
+
+    - name: Upload build log
+      uses: actions/upload-artifact@v2
+      with:
+        name: Kernel build log
+        path: ${{runner.workspace}}/kernel.log
